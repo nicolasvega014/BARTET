@@ -211,75 +211,55 @@
     if (vista === "cancelados") cargarCancelados();
   }
 
+  function armarLinkWsp(t) {
+    const [anio, mes, dia] = t.fecha.split("-");
+    const mensaje = `Hola ${t.nombre}! Tu turno en Bartet Studio fue confirmado ✅\n✂️ ${t.servicio}\n📅 ${dia}/${mes}/${anio} a las ${t.hora} hs\nTe esperamos!`;
+    const tel = t.telefono.replace(/\D/g, "");
+    return `https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`;
+  }
+
+  function armarLinkCancelacion(t) {
+    const [anio, mes, dia] = t.fecha.split("-");
+    const mensaje =
+      `Hola ${t.nombre}.\n\n` +
+      `Lamentablemente debemos cancelar tu turno en Bartet Studio.\n\n` +
+      `✂️ ${t.servicio}\n` +
+      `📅 ${dia}/${mes}/${anio} a las ${t.hora} hs\n\n` +
+      `Disculpá las molestias. Contactanos para reprogramarlo.`;
+    const tel = t.telefono.replace(/\D/g, "");
+    return `https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`;
+  }
+
   function renderTurno(t, mostrarFecha = false) {
-  return `
-    <div class="turno" id="turno-${t.id}">
-      <div class="turno-hora">
-        ${t.hora}
-        ${mostrarFecha ? `<span class="turno-fecha-label">${formatearFecha(t.fecha)}</span>` : ""}
+    return `
+      <div class="turno" id="turno-${t.id}">
+        <div class="turno-hora">
+          ${t.hora}
+          ${mostrarFecha ? `<span class="turno-fecha-label">${formatearFecha(t.fecha)}</span>` : ""}
+        </div>
+        <div class="turno-info">
+          <div class="turno-nombre">${t.nombre}</div>
+          <div class="turno-detalle">${t.servicio} · $${t.precio.toLocaleString()}</div>
+          <a class="turno-tel" href="https://wa.me/${limpiarTel(t.telefono)}" target="_blank">📱 ${t.telefono}</a>
+        </div>
+        <div class="acciones">
+          <span class="badge badge-${t.estado}">${t.estado}</span>
+          ${t.estado !== "confirmado" && t.estado !== "cancelado" ? `
+            <button class="btn-accion" onclick="confirmarYWhatsapp(${t.id}, '${t.fecha}', '${t.nombre}', '${t.servicio}', '${t.hora}', '${t.telefono}')">✓ Confirmar</button>
+          ` : ""}
+          ${t.estado === "confirmado" ? `
+            <a class="btn-accion" style="text-decoration:none;text-align:center;" href="${armarLinkWsp(t)}" target="_blank">📲 WhatsApp</a>
+          ` : ""}
+          ${t.estado !== "cancelado" ? `
+            <button class="btn-accion" onclick="cancelarYAvisar(${t.id}, '${t.fecha}', '${t.nombre}', '${t.servicio}', '${t.hora}', '${t.telefono}')">✕ Cancelar y avisar</button>
+          ` : ""}
+          ${t.estado === "cancelado" ? `
+            <button class="btn-accion danger" onclick="liberarHorario(${t.id}, '${t.fecha}')">🗑 Liberar horario</button>
+          ` : ""}
+        </div>
       </div>
-
-      <div class="turno-info">
-        <div class="turno-nombre">${t.nombre}</div>
-        <div class="turno-detalle">${t.servicio} · $${t.precio.toLocaleString()}</div>
-        <a class="turno-tel" href="https://wa.me/${limpiarTel(t.telefono)}" target="_blank">
-          📱 ${t.telefono}
-        </a>
-      </div>
-
-      <div class="acciones">
-        <span class="badge badge-${t.estado}">
-          ${t.estado}
-        </span>
-
-        ${
-          t.estado !== "confirmado" && t.estado !== "cancelado"
-            ? `<button class="btn-accion"
-                onclick="confirmarYWhatsapp(${t.id}, '${t.fecha}', '${t.nombre}', '${t.servicio}', '${t.hora}', '${t.telefono}')">
-                ✓ Confirmar
-              </button>`
-            : ""
-        }
-
-        ${
-          t.estado === "confirmado"
-            ? `<a class="btn-accion"
-                style="text-decoration:none;text-align:center;"
-                href="${armarLinkWsp(t)}"
-                target="_blank">
-                📲 WhatsApp
-              </a>`
-            : ""
-        }
-
-          ${
-            t.estado !== "cancelado"
-              ? `<button class="btn-accion"
-                  onclick="cancelarYAvisar(
-                    ${t.id},
-                    '${t.fecha}',
-                    '${t.nombre}',
-                    '${t.servicio}',
-                    '${t.hora}',
-                    '${t.telefono}'
-                  )">
-                  ✕ Cancelar y avisar
-                </button>`
-              : ""
-          }
-
-        ${
-          t.estado === "cancelado"
-            ? `<button class="btn-accion danger"
-                onclick="liberarHorario(${t.id}, '${t.fecha}')">
-                🗑 Liberar horario
-              </button>`
-            : ""
-        }
-      </div>
-    </div>
-  `;
-}
+    `;
+  }
 
   async function cargarTurnos(fecha) {
     document.getElementById("lista-turnos").innerHTML = '<div class="cargando">Cargando...</div>';
@@ -362,100 +342,35 @@
   function limpiarTel(tel) {
     return tel.replace(/\D/g, "");
   }
-  function armarLinkWsp(t) {
-  const [anio, mes, dia] = t.fecha.split("-");
-  const mensaje = `Hola ${t.nombre}! Tu turno en Bartet Studio fue confirmado ✅\n✂️ ${t.servicio}\n📅 ${dia}/${mes}/${anio} a las ${t.hora} hs\nTe esperamos!`;
-  const tel = t.telefono.replace(/\D/g, "");
-  return `https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`;
-}
-function armarLinkCancelacion(t) {
-  const [anio, mes, dia] = t.fecha.split("-");
 
-  const mensaje =
-    `Hola ${t.nombre}.\n\n` +
-    `Lamentablemente debemos cancelar tu turno en Bartet Studio.\n\n` +
-    `✂️ ${t.servicio}\n` +
-    `📅 ${dia}/${mes}/${anio} a las ${t.hora} hs\n\n` +
-    `Disculpá las molestias. Contactanos para reprogramarlo.`;
-
-  const tel = t.telefono.replace(/\D/g, "");
-
-  return `https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`;
-}
-
-async function confirmarYWhatsapp(id, fecha, nombre, servicio, hora, telefono) {
-  await fetch(`/api/admin/turnos/${id}?key=${KEY}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      estado: "confirmado"
-    })
-  });
-
-  const turno = {
-    nombre,
-    servicio,
-    hora,
-    fecha,
-    telefono
-  };
-
-  window.open(armarLinkWsp(turno), "_blank");
-  
-  cargarTurnos(fecha);
-
-  const vistaActiva = document.querySelector(".vista.activa").id;
-
-  if (vistaActiva === "vista-pendientes") {
-    cargarPendientes();
-  }
-
-  if (vistaActiva === "vista-confirmados") {
-    cargarConfirmados();
-  }
-}
-  async function cancelarYAvisar(id, fecha, nombre, servicio, hora, telefono) {
-
-  if (!confirm("¿Cancelar el turno y avisar al cliente por WhatsApp?")) {
-    return;
-  }
-
-  await fetch(`/api/admin/turnos/${id}?key=${KEY}`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      estado: "cancelado"
-    })
-  });
-
-  const turno = {
-    nombre,
-    servicio,
-    hora,
-    fecha,
-    telefono
-  };
-
-  window.open(armarLinkCancelacion(turno), "_blank");
-
-  cargarTurnos(fecha);
-
-  const vistaActiva = document.querySelector(".vista.activa").id;
-
-  if (vistaActiva === "vista-pendientes") cargarPendientes();
-  if (vistaActiva === "vista-confirmados") cargarConfirmados();
-  if (vistaActiva === "vista-cancelados") cargarCancelados();
-}
-async function cambiarEstado(id, estado, fecha) {
+  async function confirmarYWhatsapp(id, fecha, nombre, servicio, hora, telefono) {
     await fetch(`/api/admin/turnos/${id}?key=${KEY}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ estado }),
+      body: JSON.stringify({ estado: "confirmado" }),
     });
+
+    const turno = { nombre, servicio, hora, fecha, telefono };
+    window.open(armarLinkWsp(turno), "_blank");
+
+    cargarTurnos(fecha);
+    const vistaActiva = document.querySelector(".vista.activa").id;
+    if (vistaActiva === "vista-pendientes") cargarPendientes();
+    if (vistaActiva === "vista-confirmados") cargarConfirmados();
+  }
+
+  async function cancelarYAvisar(id, fecha, nombre, servicio, hora, telefono) {
+    if (!confirm("¿Cancelar el turno y avisar al cliente por WhatsApp?")) return;
+
+    await fetch(`/api/admin/turnos/${id}?key=${KEY}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ estado: "cancelado" }),
+    });
+
+    const turno = { nombre, servicio, hora, fecha, telefono };
+    window.open(armarLinkCancelacion(turno), "_blank");
+
     cargarTurnos(fecha);
     const vistaActiva = document.querySelector(".vista.activa").id;
     if (vistaActiva === "vista-pendientes") cargarPendientes();
@@ -465,9 +380,7 @@ async function cambiarEstado(id, estado, fecha) {
 
   async function liberarHorario(id, fecha) {
     if (!confirm("¿Eliminar este turno y liberar el horario?")) return;
-    await fetch(`/api/admin/turnos/${id}?key=${KEY}`, {
-      method: "DELETE",
-    });
+    await fetch(`/api/admin/turnos/${id}?key=${KEY}`, { method: "DELETE" });
     cargarTurnos(fecha);
     cargarCancelados();
   }
