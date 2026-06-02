@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bartet Studio · Panel</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0a0a0a;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    .header {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .header-logo { display: flex; align-items: center; gap: 10px; }
+    .header-logo img { height: 36px; object-fit: contain; }
+    .header-logo h1 { font-family: 'Cinzel', serif; font-size: 1rem; font-weight: 600; color: white; letter-spacing: 0.1em; }
+    .header-logo p { font-size: 11px; color: #555; letter-spacing: 0.08em; text-transform: uppercase; }
+    .header span { font-size: 13px; color: #555; }
+
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1rem; }
+    .stat { background: #111; border: 1px solid #222; border-radius: 12px; padding: 1rem; text-align: center; }
+    .stat .numero { font-size: 1.8rem; font-weight: 600; color: #eee; }
+    .stat .label { font-size: 12px; color: #555; margin-top: 2px; }
+
+    .tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-bottom: 1rem;
+    }
+
+    .tab {
+      text-align: center;
+      padding: 10px 4px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      border: 1px solid #222;
+      background: #111;
+      color: #555;
+      transition: all 0.15s;
+    }
+
+    .tab:hover { color: #aaa; }
+    .tab.activo { background: #c9a84c; color: #000; border-color: #c9a84c; font-weight: 600; }
+
+    .controles {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 12px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .controles label { font-size: 13px; color: #555; }
+    .controles input[type="date"] { border: 1px solid #333; border-radius: 8px; padding: 7px 10px; font-size: 13px; outline: none; background: #1a1a1a; color: #eee; color-scheme: dark; }
+    .controles input[type="date"]:focus { border-color: #c9a84c; }
+
+    .btn-hoy { background: #c9a84c; color: #000; border: none; border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+    .turnos-lista { background: #111; border: 1px solid #222; border-radius: 12px; overflow: hidden; }
+
+    .seccion-titulo { padding: 12px 1.25rem; font-size: 11px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.08em; background: #0f0f0f; border-bottom: 1px solid #1a1a1a; }
+
+    .turno { display: flex; align-items: center; gap: 12px; padding: 14px 1.25rem; border-bottom: 1px solid #1a1a1a; }
+    .turno:last-child { border-bottom: none; }
+
+    .turno-hora { font-size: 14px; font-weight: 600; min-width: 52px; color: #eee; }
+    .turno-fecha-label { font-size: 11px; color: #555; font-weight: 400; display: block; margin-top: 2px; }
+
+    .turno-info { flex: 1; }
+    .turno-nombre { font-size: 14px; font-weight: 500; color: #eee; }
+    .turno-detalle { font-size: 12px; color: #555; margin-top: 2px; }
+    .turno-tel { font-size: 12px; color: #c9a84c; text-decoration: none; margin-top: 3px; display: block; }
+
+    .badge { font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 500; white-space: nowrap; }
+    .badge-pendiente { background: #2a1f00; color: #f0a500; }
+    .badge-confirmado { background: #0d2a0d; color: #4caf50; }
+    .badge-cancelado { background: #2a0d0d; color: #e57373; }
+
+    .acciones { display: flex; flex-direction: column; gap: 4px; }
+
+    .btn-accion { font-size: 11px; padding: 4px 8px; border-radius: 6px; border: 1px solid #333; background: #1a1a1a; color: #aaa; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+    .btn-accion:hover { background: #222; color: #eee; }
+    .btn-accion.danger { border-color: #5a1a1a; color: #e57373; }
+    .btn-accion.danger:hover { background: #2a0d0d; color: #ff8a80; }
+
+    .vacio { text-align: center; padding: 3rem 1rem; color: #444; font-size: 14px; }
+    .cargando { text-align: center; padding: 2rem; color: #444; font-size: 14px; }
+
+    .vista { display: none; }
+    .vista.activa { display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div class="header-logo">
+      <img src="logo.png" alt="Bartet Studio" onerror="this.style.display='none'" />
+      <div>
+        <h1>BARTET STUDIO</h1>
+        <p>Panel del barbero</p>
+      </div>
+    </div>
+    <span id="fecha-display"></span>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="numero" id="stat-total">—</div>
+      <div class="label">turnos hoy</div>
+    </div>
+    <div class="stat">
+      <div class="numero" id="stat-confirmados">—</div>
+      <div class="label">confirmados</div>
+    </div>
+    <div class="stat">
+      <div class="numero" id="stat-ingresos">—</div>
+      <div class="label">ingresos</div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab activo" onclick="mostrarVista('agenda', this)">📅 Agenda</button>
+    <button class="tab" onclick="mostrarVista('pendientes', this)">⏳ Pendientes</button>
+    <button class="tab" onclick="mostrarVista('confirmados', this)">✅ Confirmados</button>
+    <button class="tab" onclick="mostrarVista('cancelados', this)">✕ Cancelados</button>
+  </div>
+
+  <!-- Vista agenda -->
+  <div class="vista activa" id="vista-agenda">
+    <div class="controles">
+      <label>Ver día:</label>
+      <input type="date" id="selector-fecha" />
+      <button class="btn-hoy" onclick="irAHoy()">Hoy</button>
+    </div>
+    <div class="turnos-lista" id="lista-turnos">
+      <div class="cargando">Cargando turnos...</div>
+    </div>
+  </div>
+
+  <!-- Vista pendientes -->
+  <div class="vista" id="vista-pendientes">
+    <div class="turnos-lista" id="lista-pendientes">
+      <div class="cargando">Cargando pendientes...</div>
+    </div>
+  </div>
+
+  <!-- Vista confirmados -->
+  <div class="vista" id="vista-confirmados">
+    <div class="turnos-lista" id="lista-confirmados">
+      <div class="cargando">Cargando confirmados...</div>
+    </div>
+  </div>
+
+  <!-- Vista cancelados -->
+  <div class="vista" id="vista-cancelados">
+    <div class="turnos-lista" id="lista-cancelados">
+      <div class="cargando">Cargando cancelados...</div>
+    </div>
+  </div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const KEY = params.get("key");
+
+  if (!KEY) {
+    document.body.innerHTML = "<p style='padding:2rem;color:red'>Acceso denegado. Falta la clave.</p>";
+  }
+
+  function fechaHoy() {
+    const hoy = new Date();
+    return hoy.toISOString().split("T")[0];
+  }
+
+  function formatearFecha(fechaStr) {
+    const [anio, mes, dia] = fechaStr.split("-");
+    const dias = ["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];
+    const meses = ["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];
+    const fecha = new Date(anio, mes - 1, dia);
+    return `${dias[fecha.getDay()]} ${dia} ${meses[mes - 1]}`;
+  }
+
+  function mostrarVista(vista, btn) {
+    document.querySelectorAll(".vista").forEach(v => v.classList.remove("activa"));
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("activo"));
+    document.getElementById("vista-" + vista).classList.add("activa");
+    btn.classList.add("activo");
+    if (vista === "pendientes") cargarPendientes();
+    if (vista === "confirmados") cargarConfirmados();
+    if (vista === "cancelados") cargarCancelados();
+  }
+
+  function renderTurno(t, mostrarFecha = false) {
+  return `
+    <div class="turno" id="turno-${t.id}">
+      <div class="turno-hora">
+        ${t.hora}
+        ${mostrarFecha ? `<span class="turno-fecha-label">${formatearFecha(t.fecha)}</span>` : ""}
+      </div>
+
+      <div class="turno-info">
+        <div class="turno-nombre">${t.nombre}</div>
+        <div class="turno-detalle">${t.servicio} · $${t.precio.toLocaleString()}</div>
+        <a class="turno-tel" href="https://wa.me/${limpiarTel(t.telefono)}" target="_blank">
+          📱 ${t.telefono}
+        </a>
+      </div>
+
+      <div class="acciones">
+        <span class="badge badge-${t.estado}">
+          ${t.estado}
+        </span>
+
+        ${
+          t.estado !== "confirmado" && t.estado !== "cancelado"
+            ? `<button class="btn-accion"
+                onclick="confirmarYWhatsapp(${t.id}, '${t.fecha}', '${t.nombre}', '${t.servicio}', '${t.hora}', '${t.telefono}')">
+                ✓ Confirmar
+              </button>`
+            : ""
+        }
+
+        ${
+          t.estado === "confirmado"
+            ? `<a class="btn-accion"
+                style="text-decoration:none;text-align:center;"
+                href="${armarLinkWsp(t)}"
+                target="_blank">
+                📲 WhatsApp
+              </a>`
+            : ""
+        }
+
+          ${
+            t.estado !== "cancelado"
+              ? `<button class="btn-accion"
+                  onclick="cancelarYAvisar(
+                    ${t.id},
+                    '${t.fecha}',
+                    '${t.nombre}',
+                    '${t.servicio}',
+                    '${t.hora}',
+                    '${t.telefono}'
+                  )">
+                  ✕ Cancelar y avisar
+                </button>`
+              : ""
+          }
+
+        ${
+          t.estado === "cancelado"
+            ? `<button class="btn-accion danger"
+                onclick="liberarHorario(${t.id}, '${t.fecha}')">
+                🗑 Liberar horario
+              </button>`
+            : ""
+        }
+      </div>
+    </div>
+  `;
+}
+
+  async function cargarTurnos(fecha) {
+    document.getElementById("lista-turnos").innerHTML = '<div class="cargando">Cargando...</div>';
+    document.getElementById("fecha-display").textContent = formatearFecha(fecha);
+
+    const res = await fetch(`/api/admin/turnos?key=${KEY}&fecha=${fecha}`);
+    if (!res.ok) {
+      document.body.innerHTML = "<p style='padding:2rem;color:red'>Acceso denegado.</p>";
+      return;
+    }
+
+    const turnos = await res.json();
+    const confirmados = turnos.filter(t => t.estado === "confirmado").length;
+    const ingresos = turnos.filter(t => t.estado !== "cancelado").reduce((s, t) => s + t.precio, 0);
+    document.getElementById("stat-total").textContent = turnos.length;
+    document.getElementById("stat-confirmados").textContent = confirmados;
+    document.getElementById("stat-ingresos").textContent = "$" + ingresos.toLocaleString();
+
+    if (turnos.length === 0) {
+      document.getElementById("lista-turnos").innerHTML = '<div class="vacio">No hay turnos para este día</div>';
+      return;
+    }
+
+    document.getElementById("lista-turnos").innerHTML = turnos.map(t => renderTurno(t, false)).join("");
+  }
+
+  async function cargarPendientes() {
+    document.getElementById("lista-pendientes").innerHTML = '<div class="cargando">Cargando...</div>';
+    const res = await fetch(`/api/admin/turnos?key=${KEY}`);
+    if (!res.ok) return;
+    const todos = await res.json();
+    const hoy = fechaHoy();
+    const pendientes = todos.filter(t => t.estado === "pendiente" && t.fecha >= hoy);
+
+    if (pendientes.length === 0) {
+      document.getElementById("lista-pendientes").innerHTML = '<div class="vacio">No hay turnos pendientes 🎉</div>';
+      return;
+    }
+
+    document.getElementById("lista-pendientes").innerHTML =
+      `<div class="seccion-titulo">${pendientes.length} turno${pendientes.length !== 1 ? "s" : ""} pendiente${pendientes.length !== 1 ? "s" : ""}</div>` +
+      pendientes.map(t => renderTurno(t, true)).join("");
+  }
+
+  async function cargarConfirmados() {
+    document.getElementById("lista-confirmados").innerHTML = '<div class="cargando">Cargando...</div>';
+    const res = await fetch(`/api/admin/turnos?key=${KEY}`);
+    if (!res.ok) return;
+    const todos = await res.json();
+    const hoy = fechaHoy();
+    const confirmados = todos.filter(t => t.estado === "confirmado" && t.fecha >= hoy);
+
+    if (confirmados.length === 0) {
+      document.getElementById("lista-confirmados").innerHTML = '<div class="vacio">No hay turnos confirmados</div>';
+      return;
+    }
+
+    document.getElementById("lista-confirmados").innerHTML =
+      `<div class="seccion-titulo">${confirmados.length} turno${confirmados.length !== 1 ? "s" : ""} confirmado${confirmados.length !== 1 ? "s" : ""}</div>` +
+      confirmados.map(t => renderTurno(t, true)).join("");
+  }
+
+  async function cargarCancelados() {
+    document.getElementById("lista-cancelados").innerHTML = '<div class="cargando">Cargando...</div>';
+    const res = await fetch(`/api/admin/turnos?key=${KEY}`);
+    if (!res.ok) return;
+    const todos = await res.json();
+    const cancelados = todos.filter(t => t.estado === "cancelado");
+
+    if (cancelados.length === 0) {
+      document.getElementById("lista-cancelados").innerHTML = '<div class="vacio">No hay turnos cancelados</div>';
+      return;
+    }
+
+    document.getElementById("lista-cancelados").innerHTML =
+      `<div class="seccion-titulo">${cancelados.length} turno${cancelados.length !== 1 ? "s" : ""} cancelado${cancelados.length !== 1 ? "s" : ""}</div>` +
+      cancelados.map(t => renderTurno(t, true)).join("");
+  }
+
+  function limpiarTel(tel) {
+    return tel.replace(/\D/g, "");
+  }
+  function armarLinkWsp(t) {
+  const [anio, mes, dia] = t.fecha.split("-");
+  const mensaje = `Hola ${t.nombre}! Tu turno en Bartet Studio fue confirmado ✅\n✂️ ${t.servicio}\n📅 ${dia}/${mes}/${anio} a las ${t.hora} hs\nTe esperamos!`;
+  const tel = t.telefono.replace(/\D/g, "");
+  return `https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`;
+}
+function armarLinkCancelacion(t) {
+  const [anio, mes, dia] = t.fecha.split("-");
+
+  const mensaje =
+    `Hola ${t.nombre}.\n\n` +
+    `Lamentablemente debemos cancelar tu turno en Bartet Studio.\n\n` +
+    `✂️ ${t.servicio}\n` +
+    `📅 ${dia}/${mes}/${anio} a las ${t.hora} hs\n\n` +
+    `Disculpá las molestias. Contactanos para reprogramarlo.`;
+
+  const tel = t.telefono.replace(/\D/g, "");
+
+  return `https://wa.me/${tel}?text=${encodeURIComponent(mensaje)}`;
+}
+
+async function confirmarYWhatsapp(id, fecha, nombre, servicio, hora, telefono) {
+  await fetch(`/api/admin/turnos/${id}?key=${KEY}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      estado: "confirmado"
+    })
+  });
+
+  const turno = {
+    nombre,
+    servicio,
+    hora,
+    fecha,
+    telefono
+  };
+
+  window.open(armarLinkWsp(turno), "_blank");
+  
+  cargarTurnos(fecha);
+
+  const vistaActiva = document.querySelector(".vista.activa").id;
+
+  if (vistaActiva === "vista-pendientes") {
+    cargarPendientes();
+  }
+
+  if (vistaActiva === "vista-confirmados") {
+    cargarConfirmados();
+  }
+}
+  async function cancelarYAvisar(id, fecha, nombre, servicio, hora, telefono) {
+
+  if (!confirm("¿Cancelar el turno y avisar al cliente por WhatsApp?")) {
+    return;
+  }
+
+  await fetch(`/api/admin/turnos/${id}?key=${KEY}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      estado: "cancelado"
+    })
+  });
+
+  const turno = {
+    nombre,
+    servicio,
+    hora,
+    fecha,
+    telefono
+  };
+
+  window.open(armarLinkCancelacion(turno), "_blank");
+
+  cargarTurnos(fecha);
+
+  const vistaActiva = document.querySelector(".vista.activa").id;
+
+  if (vistaActiva === "vista-pendientes") cargarPendientes();
+  if (vistaActiva === "vista-confirmados") cargarConfirmados();
+  if (vistaActiva === "vista-cancelados") cargarCancelados();
+}
+async function cambiarEstado(id, estado, fecha) {
+    await fetch(`/api/admin/turnos/${id}?key=${KEY}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ estado }),
+    });
+    cargarTurnos(fecha);
+    const vistaActiva = document.querySelector(".vista.activa").id;
+    if (vistaActiva === "vista-pendientes") cargarPendientes();
+    if (vistaActiva === "vista-confirmados") cargarConfirmados();
+    if (vistaActiva === "vista-cancelados") cargarCancelados();
+  }
+
+  async function liberarHorario(id, fecha) {
+    if (!confirm("¿Eliminar este turno y liberar el horario?")) return;
+    await fetch(`/api/admin/turnos/${id}?key=${KEY}`, {
+      method: "DELETE",
+    });
+    cargarTurnos(fecha);
+    cargarCancelados();
+  }
+
+  function irAHoy() {
+    const hoy = fechaHoy();
+    document.getElementById("selector-fecha").value = hoy;
+    cargarTurnos(hoy);
+  }
+
+  document.getElementById("selector-fecha").addEventListener("change", (e) => {
+    cargarTurnos(e.target.value);
+  });
+
+  irAHoy();
+</script>
+</body>
+</html>

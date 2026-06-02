@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bartet Studio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: #0a0a0a;
+      min-height: 100vh;
+      padding-top: 60px;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 60px;
+      background: #0a0a0a;
+      border-bottom: 1px solid #222;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      z-index: 100;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .nav-logo img {
+      height: 36px;
+      object-fit: contain;
+    }
+
+    .nav-logo span {
+      font-family: 'Cinzel', serif;
+      font-size: 1rem;
+      color: white;
+      letter-spacing: 0.1em;
+    }
+
+    /* Links en desktop */
+    .nav-links {
+      display: flex;
+      gap: 4px;
+    }
+
+    .nav-link {
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 13px;
+      font-family: 'Inter', sans-serif;
+      padding: 6px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .nav-link:hover { color: #aaa; background: #1a1a1a; }
+    .nav-link.activo { color: #c9a84c; background: #1e1a0f; }
+
+    /* Hamburguesa */
+    .hamburguesa {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+
+    .hamburguesa span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: #aaa;
+      border-radius: 2px;
+      transition: transform 0.2s, opacity 0.2s;
+    }
+
+    .hamburguesa.abierto span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburguesa.abierto span:nth-child(2) { opacity: 0; }
+    .hamburguesa.abierto span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+    /* Menú mobile desplegable */
+    .menu-mobile {
+      display: none;
+      position: fixed;
+      top: 60px; left: 0; right: 0;
+      background: #111;
+      border-bottom: 1px solid #222;
+      flex-direction: column;
+      padding: 0.75rem 1rem;
+      gap: 4px;
+      z-index: 99;
+    }
+
+    .menu-mobile.abierto { display: flex; }
+
+    .menu-mobile .nav-link {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 14px;
+      width: 100%;
+    }
+
+    @media (max-width: 520px) {
+      .nav-links { display: none; }
+      .hamburguesa { display: flex; }
+    }
+
+    /* ── Secciones ── */
+    .seccion { display: none; }
+    .seccion.activa {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: calc(100vh - 60px);
+      padding: 2rem 1rem;
+    }
+
+    /* ── Card turnos ── */
+    .card {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 16px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 440px;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #222;
+    }
+
+    .logo img { width: 160px; margin-bottom: 0.5rem; }
+    .logo h1 { font-family: 'Cinzel', serif; font-size: 1.3rem; color: white; letter-spacing: 0.1em; }
+    .logo p { font-size: 0.8rem; color: #666; margin-top: 4px; letter-spacing: 0.15em; text-transform: uppercase; }
+
+    .pasos { display: flex; gap: 8px; margin-bottom: 1.5rem; }
+    .paso { flex: 1; text-align: center; padding: 8px 4px; border-radius: 8px; font-size: 11px; background: #1a1a1a; color: #555; border: 1px solid #222; letter-spacing: 0.05em; }
+    .paso.activo { background: #c9a84c; color: #000; font-weight: 600; border-color: #c9a84c; }
+    .paso.completo { background: #1a1a1a; color: #c9a84c; border-color: #c9a84c; }
+
+    h2 { font-size: 0.9rem; font-weight: 500; margin-bottom: 1rem; color: #aaa; text-transform: uppercase; letter-spacing: 0.1em; }
+
+    .servicios { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+    .servicio-card { border: 1px solid #222; border-radius: 10px; padding: 12px; cursor: pointer; background: #1a1a1a; transition: border-color 0.15s; }
+    .servicio-card:hover { border-color: #c9a84c; }
+    .servicio-card.seleccionado { border-color: #c9a84c; background: #1e1a0f; }
+    .servicio-card .nombre { font-size: 13px; font-weight: 500; color: #eee; }
+    .servicio-card .precio { font-size: 12px; color: #666; margin-top: 3px; }
+    .servicio-card.seleccionado .nombre { color: #c9a84c; }
+
+    .calendario-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .calendario-header button { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: #888; padding: 4px 8px; }
+    .calendario-header button:hover { color: #c9a84c; }
+    #mes-nombre { font-weight: 500; font-size: 14px; color: #aaa; }
+
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 1rem; text-align: center; }
+    .cal-grid .dia-nombre { font-size: 11px; color: #555; padding: 4px 0; }
+    .dia { padding: 8px 4px; border-radius: 8px; font-size: 13px; cursor: pointer; color: #ccc; }
+    .dia:hover { background: #1e1a0f; color: #c9a84c; }
+    .dia.seleccionado { background: #c9a84c; color: #000; font-weight: 600; }
+    .dia.deshabilitado { color: #333; cursor: default; pointer-events: none; }
+    .dia.vacio { visibility: hidden; }
+
+    .horarios { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 1.5rem; }
+    .horario { border: 1px solid #222; border-radius: 8px; padding: 8px 4px; text-align: center; font-size: 12px; cursor: pointer; color: #ccc; background: #1a1a1a; transition: border-color 0.15s; }
+    .horario:hover { border-color: #c9a84c; color: #c9a84c; }
+    .horario.seleccionado { background: #c9a84c; color: #000; border-color: #c9a84c; font-weight: 600; }
+    .horario.ocupado { background: #111; color: #333; cursor: default; text-decoration: line-through; border-color: #1a1a1a; }
+
+    .form-grupo { margin-bottom: 1rem; }
+    .form-grupo label { display: block; font-size: 12px; color: #666; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .form-grupo input { width: 100%; border: 1px solid #222; border-radius: 8px; padding: 10px 12px; font-size: 14px; outline: none; background: #1a1a1a; color: #eee; transition: border-color 0.15s; }
+    .form-grupo input:focus { border-color: #c9a84c; }
+    .form-grupo input::placeholder { color: #444; }
+
+    .resumen { background: #1a1a1a; border: 1px solid #222; border-radius: 10px; padding: 12px 14px; margin-bottom: 1.2rem; font-size: 13px; }
+    .resumen-fila { display: flex; justify-content: space-between; padding: 4px 0; }
+    .resumen-fila span:first-child { color: #555; }
+    .resumen-fila span:last-child { color: #eee; font-weight: 500; }
+
+    .btn { width: 100%; background: #c9a84c; color: #000; border: none; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.15s; letter-spacing: 0.05em; }
+    .btn:hover { background: #e0bc5a; }
+    .btn:disabled { background: #2a2a2a; color: #555; cursor: default; }
+    .btn-secundario { background: transparent; color: #666; border: 1px solid #222; margin-bottom: 10px; font-weight: 400; }
+    .btn-secundario:hover { background: #1a1a1a; color: #aaa; }
+
+    .confirmacion { text-align: center; padding: 1rem 0; }
+    .confirmacion .icono { font-size: 3rem; margin-bottom: 1rem; }
+    .confirmacion h2 { font-size: 1.1rem; color: #c9a84c; font-family: 'Cinzel', serif; letter-spacing: 0.1em; margin-bottom: 0.5rem; }
+    .confirmacion p { font-size: 13px; color: #666; margin-bottom: 1.5rem; }
+
+    .pantalla { display: none; }
+    .pantalla.activa { display: block; }
+
+    /* ── Ubicación ── */
+    .ubicacion-card {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 16px;
+      overflow: hidden;
+      width: 100%;
+      max-width: 500px;
+    }
+
+    .mapa-placeholder {
+      width: 100%;
+      height: 280px;
+      background: #1a1a1a;
+      border-bottom: 1px solid #222;
+      overflow: hidden;
+    }
+
+    .mapa-placeholder iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      filter: invert(90%) hue-rotate(180deg);
+    }
+
+    .ubicacion-info {
+      padding: 1.5rem;
+    }
+
+    .ubicacion-info h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.1rem;
+      color: white;
+      margin-bottom: 1rem;
+      letter-spacing: 0.1em;
+      text-transform: none;
+    }
+
+    .dato-fila {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #1a1a1a;
+      font-size: 13px;
+    }
+
+    .dato-fila:last-child { border-bottom: none; }
+    .dato-fila .icono { font-size: 16px; min-width: 20px; }
+    .dato-fila .texto { color: #aaa; line-height: 1.5; }
+    .dato-fila .texto strong { color: #eee; display: block; font-weight: 500; }
+
+    /* ── Merch ── */
+    .merch-card {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 16px;
+      padding: 3rem 2rem;
+      width: 100%;
+      max-width: 440px;
+      text-align: center;
+    }
+
+    .merch-card .icono { font-size: 3rem; margin-bottom: 1rem; }
+    .merch-card h2 { font-family: 'Cinzel', serif; font-size: 1.2rem; color: white; letter-spacing: 0.1em; margin-bottom: 0.75rem; text-transform: none; }
+    .merch-card p { font-size: 13px; color: #555; line-height: 1.6; }
+    .merch-badge { display: inline-block; margin-top: 1.5rem; background: #1e1a0f; color: #c9a84c; border: 1px solid #c9a84c; border-radius: 20px; padding: 6px 16px; font-size: 12px; letter-spacing: 0.1em; }
+  </style>
+</head>
+<body>
+
+  <!-- Nav -->
+  <nav>
+    <div class="nav-logo">
+      <img src="logo.png" alt="Bartet Studio" onerror="this.style.display='none'" />
+      <span>BARTET STUDIO</span>
+    </div>
+    <div class="nav-links">
+      <button class="nav-link activo" onclick="mostrarSeccion('turnos', this)">Turnos</button>
+      <button class="nav-link" onclick="mostrarSeccion('ubicacion', this)">Ubicación</button>
+      <button class="nav-link" onclick="mostrarSeccion('merch', this)">Merch</button>
+    </div>
+    <button class="hamburguesa" id="hamburguesa" onclick="toggleMenu()" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+
+  <!-- Menú mobile -->
+  <div class="menu-mobile" id="menu-mobile">
+    <button class="nav-link activo" onclick="mostrarSeccion('turnos', this); cerrarMenu()">Turnos</button>
+    <button class="nav-link" onclick="mostrarSeccion('ubicacion', this); cerrarMenu()">Ubicación</button>
+    <button class="nav-link" onclick="mostrarSeccion('merch', this); cerrarMenu()">Merch</button>
+  </div>
+
+  <!-- Sección Turnos -->
+  <section class="seccion activa" id="sec-turnos">
+    <div class="card">
+      <div class="logo">
+        <img src="logo.png" alt="Bartet Studio" onerror="this.style.display='none'" />
+        <h1>BARTET STUDIO</h1>
+        <p>Reservá tu turno</p>
+      </div>
+
+      <div class="pasos">
+        <div class="paso" id="paso1">1 · Servicio</div>
+        <div class="paso" id="paso2">2 · Fecha</div>
+        <div class="paso" id="paso3">3 · Datos</div>
+      </div>
+
+      <div class="pantalla activa" id="pantalla-servicio">
+        <h2>¿Qué servicio querés?</h2>
+        <div class="servicios" id="lista-servicios"></div>
+        <button class="btn" id="btn-siguiente-servicio" disabled>Siguiente →</button>
+      </div>
+
+      <div class="pantalla" id="pantalla-fecha">
+        <h2>Elegí el día</h2>
+        <div class="calendario-header">
+          <button id="mes-anterior">‹</button>
+          <span id="mes-nombre"></span>
+          <button id="mes-siguiente">›</button>
+        </div>
+        <div class="cal-grid" id="calendario"></div>
+        <h2>Horarios disponibles</h2>
+        <div class="horarios" id="lista-horarios"></div>
+        <button class="btn btn-secundario" onclick="irA('servicio')">← Volver</button>
+        <button class="btn" id="btn-siguiente-fecha" disabled>Siguiente →</button>
+      </div>
+
+      <div class="pantalla" id="pantalla-datos">
+        <div class="resumen" id="resumen"></div>
+        <div class="form-grupo">
+          <label>Tu nombre</label>
+          <input type="text" id="input-nombre" placeholder="Ej: Martín García" />
+        </div>
+        <div class="form-grupo">
+          <label>Teléfono WhatsApp</label>
+          <input type="tel" id="input-telefono" placeholder="+54 9 11 66082717" />
+        </div>
+        <button class="btn btn-secundario" onclick="irA('fecha')">← Volver</button>
+        <button class="btn" id="btn-confirmar">Confirmar turno</button>
+      </div>
+
+      <div class="pantalla" id="pantalla-confirmacion">
+        <div class="confirmacion">
+          <div class="icono">✅</div>
+          <h2>¡Turno reservado!</h2>
+          <p>Te esperamos. Guardá esta info:</p>
+          <div class="resumen" id="resumen-final"></div>
+          <a id="btn-whatsapp" class="btn" style="display:none; text-decoration:none; text-align:center; margin-bottom:10px;" target="_blank">📲 Notificar al barbero por WhatsApp</a>
+          <button class="btn" style="background:#1a1a1a; color:#666; border:1px solid #222; margin-top:8px;" onclick="location.reload()">Reservar otro turno</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección Ubicación -->
+  <section class="seccion" id="sec-ubicacion">
+    <div class="ubicacion-card">
+      <div class="mapa-placeholder">
+        <!-- Reemplazá la URL del iframe con la dirección real en Google Maps -->
+        <iframe
+          <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d487.22131748109!2d-58.23348341922953!3d-34.76512512634891!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95a32f002673779f%3A0x9c32f2ac9ccc00!2sBartet.Studio!5e0!3m2!1ses-419!2sar!4v1780350733754!5m2!1ses-419!2sar" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          allowfullscreen=""
+          loading="lazy">
+        </iframe>
+      </div>
+      <div class="ubicacion-info">
+        <h2>Cómo llegarnos</h2>
+        <div class="dato-fila">
+          <span class="icono">📍</span>
+          <div class="texto">
+            <strong>Dirección</strong>
+            Av. 7 2998, B1884 BEH, Provincia de Buenos Aires
+          </div>
+        </div>
+        <div class="dato-fila">
+          <span class="icono">🕐</span>
+          <div class="texto">
+            <strong>Horarios</strong>
+            Lunes a viernes 9:00 – 19:00 hs<br/>Sábados 9:00 – 14:00 hs
+          </div>
+        </div>
+        <div class="dato-fila">
+          <span class="icono">📱</span>
+          <div class="texto">
+            <strong>WhatsApp</strong>
+            +54 9 11 66082717
+          </div>
+        </div>
+        <div class="dato-fila">
+          <span class="icono">📸</span>
+          <div class="texto">
+            <strong>Instagram</strong>
+            @bartetstudio
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sección Merch -->
+  <section class="seccion" id="sec-merch">
+    <div class="merch-card">
+      <div class="icono">👕</div>
+      <h2>Merch próximamente</h2>
+      <p>Estamos preparando algo especial.<br/>Pronto vas a poder conseguir ropa y accesorios de Bartet Studio.</p>
+      <div class="merch-badge">MUY PRONTO</div>
+    </div>
+  </section>
+
+<script>
+  let servicioSeleccionado = null;
+  let fechaSeleccionada = null;
+  let horaSeleccionada = null;
+  let servicios = [];
+  let mesActual = new Date();
+  mesActual.setDate(1);
+
+  // ── Nav ──
+  function mostrarSeccion(seccion, btn) {
+    document.querySelectorAll(".seccion").forEach(s => s.classList.remove("activa"));
+    document.getElementById("sec-" + seccion).classList.add("activa");
+    document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("activo"));
+    if (btn) btn.classList.add("activo");
+    // Sincronizar ambos menús
+    const index = ["turnos","ubicacion","merch"].indexOf(seccion);
+    document.querySelectorAll(".nav-links .nav-link")[index]?.classList.add("activo");
+    document.querySelectorAll(".menu-mobile .nav-link")[index]?.classList.add("activo");
+  }
+
+  function toggleMenu() {
+    const menu = document.getElementById("menu-mobile");
+    const ham = document.getElementById("hamburguesa");
+    menu.classList.toggle("abierto");
+    ham.classList.toggle("abierto");
+  }
+
+  function cerrarMenu() {
+    document.getElementById("menu-mobile").classList.remove("abierto");
+    document.getElementById("hamburguesa").classList.remove("abierto");
+  }
+
+  // ── Turnos ──
+  async function cargarServicios() {
+    const res = await fetch("/api/servicios");
+    servicios = await res.json();
+    document.getElementById("lista-servicios").innerHTML = servicios.map(s => `
+      <div class="servicio-card" onclick="seleccionarServicio('${s.id}')" id="srv-${s.id}">
+        <div class="nombre">${s.nombre}</div>
+        <div class="precio">$${s.precio.toLocaleString()} · ${s.duracion} min</div>
+      </div>
+    `).join("");
+  }
+
+  function seleccionarServicio(id) {
+    servicioSeleccionado = id;
+    document.querySelectorAll(".servicio-card").forEach(c => c.classList.remove("seleccionado"));
+    document.getElementById("srv-" + id).classList.add("seleccionado");
+    document.getElementById("btn-siguiente-servicio").disabled = false;
+  }
+
+  function renderCalendario() {
+    const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+    const dias = ["L","M","X","J","V","S","D"];
+    document.getElementById("mes-nombre").textContent = `${meses[mesActual.getMonth()]} ${mesActual.getFullYear()}`;
+
+    const hoy = new Date();
+    hoy.setHours(0,0,0,0);
+
+    const primerDia = new Date(mesActual.getFullYear(), mesActual.getMonth(), 1);
+    let diaSemana = primerDia.getDay();
+    diaSemana = diaSemana === 0 ? 6 : diaSemana - 1;
+    const ultimoDia = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 0).getDate();
+
+    let html = dias.map(d => `<div class="dia-nombre">${d}</div>`).join("");
+    for (let i = 0; i < diaSemana; i++) html += `<div class="dia vacio"></div>`;
+
+    for (let d = 1; d <= ultimoDia; d++) {
+      const fecha = new Date(mesActual.getFullYear(), mesActual.getMonth(), d);
+      const esDomingo = fecha.getDay() === 0;
+      const esPasado = fecha < hoy;
+      const fechaStr = `${mesActual.getFullYear()}-${String(mesActual.getMonth()+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+      const esSeleccionado = fechaStr === fechaSeleccionada;
+
+      if (esDomingo || esPasado) {
+        html += `<div class="dia deshabilitado">${d}</div>`;
+      } else {
+        html += `<div class="dia ${esSeleccionado ? "seleccionado" : ""}" onclick="seleccionarFecha('${fechaStr}')">${d}</div>`;
+      }
+    }
+    document.getElementById("calendario").innerHTML = html;
+  }
+
+  async function seleccionarFecha(fecha) {
+    fechaSeleccionada = fecha;
+    horaSeleccionada = null;
+    document.getElementById("btn-siguiente-fecha").disabled = true;
+    renderCalendario();
+    await cargarHorarios(fecha);
+  }
+
+  async function cargarHorarios(fecha) {
+    const res = await fetch(`/api/disponibilidad?fecha=${fecha}`);
+    const horarios = await res.json();
+    document.getElementById("lista-horarios").innerHTML = horarios.map(h => `
+      <div class="horario ${h.disponible ? "" : "ocupado"}"
+           ${h.disponible ? `onclick="seleccionarHora('${h.hora}')"` : ""}
+           id="hora-${h.hora.replace(":","-")}">
+        ${h.hora}
+      </div>
+    `).join("");
+  }
+
+  function seleccionarHora(hora) {
+    horaSeleccionada = hora;
+    document.querySelectorAll(".horario").forEach(h => h.classList.remove("seleccionado"));
+    document.getElementById("hora-" + hora.replace(":","-")).classList.add("seleccionado");
+    document.getElementById("btn-siguiente-fecha").disabled = false;
+  }
+
+  function irA(pantalla) {
+    document.querySelectorAll(".pantalla").forEach(p => p.classList.remove("activa"));
+    document.getElementById("pantalla-" + pantalla).classList.add("activa");
+    actualizarPasos(pantalla);
+  }
+
+  function actualizarPasos(pantalla) {
+    const mapa = { servicio: 1, fecha: 2, datos: 3 };
+    const actual = mapa[pantalla] || 0;
+    [1,2,3].forEach(n => {
+      const el = document.getElementById("paso" + n);
+      el.classList.remove("activo", "completo");
+      if (n === actual) el.classList.add("activo");
+      else if (n < actual) el.classList.add("completo");
+    });
+  }
+
+  function mostrarResumen(contenedorId) {
+    const srv = servicios.find(s => s.id === servicioSeleccionado);
+    const [anio, mes, dia] = fechaSeleccionada.split("-");
+    document.getElementById(contenedorId).innerHTML = `
+      <div class="resumen-fila"><span>Servicio</span><span>${srv.nombre}</span></div>
+      <div class="resumen-fila"><span>Fecha</span><span>${dia}/${mes}/${anio}</span></div>
+      <div class="resumen-fila"><span>Hora</span><span>${horaSeleccionada} hs</span></div>
+      <div class="resumen-fila"><span>Total</span><span>$${srv.precio.toLocaleString()}</span></div>
+    `;
+  }
+
+  document.getElementById("btn-siguiente-servicio").onclick = () => { irA("fecha"); renderCalendario(); };
+  document.getElementById("btn-siguiente-fecha").onclick = () => { irA("datos"); mostrarResumen("resumen"); };
+  document.getElementById("mes-anterior").onclick = () => { mesActual.setMonth(mesActual.getMonth() - 1); renderCalendario(); };
+  document.getElementById("mes-siguiente").onclick = () => { mesActual.setMonth(mesActual.getMonth() + 1); renderCalendario(); };
+
+  document.getElementById("btn-confirmar").onclick = async () => {
+    const nombre = document.getElementById("input-nombre").value.trim();
+    const telefono = document.getElementById("input-telefono").value.trim();
+
+    if (!nombre || !telefono) { alert("Por favor completá tu nombre y teléfono."); return; }
+
+    const btn = document.getElementById("btn-confirmar");
+    btn.disabled = true;
+    btn.textContent = "Reservando...";
+
+    const res = await fetch("/api/turnos", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre, telefono, servicio: servicioSeleccionado, fecha: fechaSeleccionada, hora: horaSeleccionada }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      mostrarResumen("resumen-final");
+      irA("confirmacion");
+      const srv = servicios.find(s => s.id === servicioSeleccionado);
+      const [anio, mes, dia] = fechaSeleccionada.split("-");
+      const mensaje = `Nuevo turno reservado!%0A👤 ${nombre}%0A📱 ${telefono}%0A✂️ ${srv.nombre}%0A📅 ${dia}/${mes}/${anio} a las ${horaSeleccionada} hs`;
+      const telBarbero = "5491112345678";
+      document.getElementById("btn-whatsapp").href = `https://wa.me/${telBarbero}?text=${mensaje}`;
+      document.getElementById("btn-whatsapp").style.display = "block";
+    } else {
+      alert(data.error || "Hubo un error, intentá de nuevo.");
+      btn.disabled = false;
+      btn.textContent = "Confirmar turno";
+    }
+  };
+
+  cargarServicios();
+  actualizarPasos("servicio");
+</script>
+</body>
+</html>
